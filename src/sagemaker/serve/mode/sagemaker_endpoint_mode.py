@@ -13,12 +13,18 @@ from sagemaker.serve.model_server.torchserve.server import SageMakerTorchServe
 from sagemaker.serve.model_server.djl_serving.server import SageMakerDjlServing
 from sagemaker.serve.model_server.tgi.server import SageMakerTgiServing
 from sagemaker.serve.model_server.fastapi.server import SageMakerFastApi
+from sagemaker.serve.model_server.multi_model_server.server import SageMakerMultiModelServer
 
 logger = logging.getLogger(__name__)
 
 
 class SageMakerEndpointMode(
-    SageMakerTorchServe, SageMakerTritonServer, SageMakerDjlServing, SageMakerTgiServing, SageMakerFastApi
+    SageMakerTorchServe,
+    SageMakerTritonServer,
+    SageMakerDjlServing,
+    SageMakerTgiServing,
+    SageMakerMultiModelServer,
+    SageMakerFastApi,
 ):
     """Holds the required method to deploy a model to a SageMaker Endpoint"""
 
@@ -99,6 +105,14 @@ class SageMakerEndpointMode(
                 model_path=model_path,
                 sagemaker_session=sagemaker_session,
                 secret_key=secret_key,
+                s3_model_data_url=s3_model_data_url,
+                image=image,
+            )
+
+        if self.model_server == ModelServer.MMS:
+            return self._upload_server_artifacts(
+                model_path=model_path,
+                sagemaker_session=sagemaker_session,
                 s3_model_data_url=s3_model_data_url,
                 image=image,
             )

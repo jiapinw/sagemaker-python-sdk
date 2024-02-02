@@ -20,6 +20,7 @@ from sagemaker.serve.model_server.djl_serving.server import LocalDJLServing
 from sagemaker.serve.model_server.triton.server import LocalTritonServer
 from sagemaker.serve.model_server.tgi.server import LocalTgiServing
 from sagemaker.serve.model_server.fastapi.server import LocalFastApi
+from sagemaker.serve.model_server.multi_model_server.server import LocalMultiModelServer
 from sagemaker.session import Session
 
 logger = logging.getLogger(__name__)
@@ -32,7 +33,7 @@ _PING_HEALTH_CHECK_FAIL_MSG = (
 )
 
 
-class LocalContainerMode(LocalTorchServe, LocalDJLServing, LocalTritonServer, LocalTgiServing, LocalFastApi):
+class LocalContainerMode(LocalTorchServe, LocalDJLServing, LocalTritonServer, LocalTgiServing, LocalFastApi, LocalMultiModelServer):
     """A class that holds methods to deploy model to a container in local environment"""
 
     def __init__(
@@ -129,6 +130,15 @@ class LocalContainerMode(LocalTorchServe, LocalDJLServing, LocalTritonServer, Lo
                 jumpstart=jumpstart,
             )
             self._ping_container = self._tgi_deep_ping
+        elif self.model_server == ModelServer.MMS:
+            self._start_serving(
+                client=self.client,
+                image=image,
+                model_path=model_path if model_path else self.model_path,
+                secret_key=secret_key,
+                env_vars=env_vars if env_vars else self.env_vars,
+            )
+            self._ping_container = self._multi_model_server_deep_ping
         elif self.model_server == ModelServer.FASTAPI:
             self._start_fast_api(
                 client=self.client,
