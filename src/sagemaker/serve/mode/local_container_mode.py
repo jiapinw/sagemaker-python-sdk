@@ -11,6 +11,7 @@ import subprocess
 import docker
 
 from sagemaker.base_predictor import PredictorBase
+from sagemaker.serve.model_server.tensorflow_serving.server import LocalTensorflowServing
 from sagemaker.serve.spec.inference_spec import InferenceSpec
 from sagemaker.serve.builder.schema_builder import SchemaBuilder
 from sagemaker.serve.utils.logging_agent import pull_logs
@@ -34,7 +35,18 @@ _PING_HEALTH_CHECK_FAIL_MSG = (
 )
 
 
+<<<<<<< HEAD
 class LocalContainerMode(LocalTorchServe, LocalDJLServing, LocalTritonServer, LocalTgiServing, LocalFastApi, LocalMultiModelServer):
+=======
+class LocalContainerMode(
+    LocalTorchServe,
+    LocalDJLServing,
+    LocalTritonServer,
+    LocalTgiServing,
+    LocalMultiModelServer,
+    LocalTensorflowServing,
+):
+>>>>>>> a5c6229b0 (Add tensorflow_serving support for mlflow models and enable lineage tracking for mlflow models (#4662))
     """A class that holds methods to deploy model to a container in local environment"""
 
     def __init__(
@@ -140,6 +152,15 @@ class LocalContainerMode(LocalTorchServe, LocalDJLServing, LocalTritonServer, Lo
                 env_vars=env_vars if env_vars else self.env_vars,
             )
             self._ping_container = self._multi_model_server_deep_ping
+        elif self.model_server == ModelServer.TENSORFLOW_SERVING:
+            self._start_tensorflow_serving(
+                client=self.client,
+                image=image,
+                model_path=model_path if model_path else self.model_path,
+                secret_key=secret_key,
+                env_vars=env_vars if env_vars else self.env_vars,
+            )
+            self._ping_container = self._tensorflow_serving_deep_ping
         elif self.model_server == ModelServer.FASTAPI:
             self._start_fast_api(
                 client=self.client,
@@ -149,6 +170,7 @@ class LocalContainerMode(LocalTorchServe, LocalDJLServing, LocalTritonServer, Lo
                 env_vars=env_vars if env_vars else self.env_vars,
             )
             self._ping_container = self._fastapi_deep_ping
+
 
         # allow some time for container to be ready
         time.sleep(10)
