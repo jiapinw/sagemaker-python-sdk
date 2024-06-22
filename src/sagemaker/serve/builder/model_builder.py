@@ -41,6 +41,7 @@ from sagemaker.serve.builder.serve_settings import _ServeSettings
 from sagemaker.serve.builder.djl_builder import DJL
 from sagemaker.serve.builder.tei_builder import TEI
 from sagemaker.serve.builder.tgi_builder import TGI
+from sagemaker.serve.builder.new_model_server_builder import NewModelServer
 from sagemaker.serve.builder.jumpstart_builder import JumpStart
 from sagemaker.serve.builder.transformers_builder import Transformers
 from sagemaker.predictor import Predictor
@@ -103,12 +104,13 @@ supported_model_servers = {
     ModelServer.MMS,
     ModelServer.TGI,
     ModelServer.TEI,
+    ModelServer.NEW_MODEL_SERVER
 }
 
 
 # pylint: disable=attribute-defined-outside-init, disable=E1101, disable=R0901, disable=R1705
 @dataclass
-class ModelBuilder(Triton, DJL, JumpStart, TGI, Transformers, TensorflowServing, TEI):
+class ModelBuilder(Triton, DJL, JumpStart, TGI, Transformers, TensorflowServing, TEI, NewModelServer):
     """Class that builds a deployable model.
 
     Args:
@@ -910,6 +912,9 @@ class ModelBuilder(Triton, DJL, JumpStart, TGI, Transformers, TensorflowServing,
 
         if self.model_server == ModelServer.MMS:
             return self._build_for_transformers()
+
+        if self.model_server == ModelServer.NEW_MODEL_SERVER:
+            return self._build_for_new_model_server()
 
     def save(
         self,

@@ -6,6 +6,7 @@ from pathlib import Path
 import logging
 from typing import Type
 
+from sagemaker.serve.model_server.new_model_server.server import SageMakerNewModelServer
 from sagemaker.serve.model_server.tei.server import SageMakerTeiServing
 from sagemaker.serve.model_server.tensorflow_serving.server import SageMakerTensorflowServing
 from sagemaker.session import Session
@@ -27,6 +28,7 @@ class SageMakerEndpointMode(
     SageMakerTgiServing,
     SageMakerMultiModelServer,
     SageMakerTensorflowServing,
+    SageMakerNewModelServer,
 ):
     """Holds the required method to deploy a model to a SageMaker Endpoint"""
 
@@ -124,6 +126,14 @@ class SageMakerEndpointMode(
 
         if self.model_server == ModelServer.TEI:
             upload_artifacts = self._tei_serving._upload_tei_artifacts(
+                model_path=model_path,
+                sagemaker_session=sagemaker_session,
+                s3_model_data_url=s3_model_data_url,
+                image=image,
+            )
+
+        if self.model_server == ModelServer.NEW_MODEL_SERVER:
+            upload_artifacts = self._upload_new_model_server_artifacts(
                 model_path=model_path,
                 sagemaker_session=sagemaker_session,
                 s3_model_data_url=s3_model_data_url,

@@ -19,6 +19,7 @@ class ModelServer(Enum):
     TRITON = 5
     TGI = 6
     TEI = 7
+    NEW_MODEL_SERVER = 8
 
 
 class _DjlEngine(Enum):

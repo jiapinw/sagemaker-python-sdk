@@ -59,6 +59,7 @@ MODEL_SERVER_TO_CODE = {
     str(ModelServer.TRITON): 5,
     str(ModelServer.TGI): 6,
     str(ModelServer.TEI): 7,
+    str(ModelServer.NEW_MODEL_SERVER): 8,
 }
 
 MLFLOW_MODEL_PATH_CODE = {

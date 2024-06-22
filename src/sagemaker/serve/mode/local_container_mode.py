@@ -11,6 +11,7 @@ import subprocess
 import docker
 
 from sagemaker.base_predictor import PredictorBase
+from sagemaker.serve.model_server.new_model_server.server import LocalNewModelServer
 from sagemaker.serve.model_server.tensorflow_serving.server import LocalTensorflowServing
 from sagemaker.serve.spec.inference_spec import InferenceSpec
 from sagemaker.serve.builder.schema_builder import SchemaBuilder
@@ -42,6 +43,7 @@ class LocalContainerMode(
     LocalTgiServing,
     LocalMultiModelServer,
     LocalTensorflowServing,
+    LocalNewModelServer,
 ):
     """A class that holds methods to deploy model to a container in local environment"""
 
@@ -171,6 +173,19 @@ class LocalContainerMode(
             self.container = tei_serving.container
             self._ping_container = tei_serving._tei_deep_ping
             self._invoke_serving = tei_serving._invoke_tei_serving
+        elif self.model_server == ModelServer.NEW_MODEL_SERVER:
+            new_model_server = LocalNewModelServer()
+            new_model_server._start_new_model_server(
+                client=self.client,
+                image=image,
+                model_path=model_path if model_path else self.model_path,
+                secret_key=secret_key,
+                env_vars=env_vars if env_vars else self.env_vars,
+            )
+            new_model_server.schema_builder = self.schema_builder
+            self.container = new_model_server.container
+            self._ping_container = new_model_server._new_model_server_deep_ping()
+            self._invoke_serving = new_model_server._invoke_new_model_server()
 
         # allow some time for container to be ready
         time.sleep(10)
